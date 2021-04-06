@@ -1,0 +1,49 @@
+version: "2"
+services:
+  app:
+    image: golang:latest
+    volumes:
+      - .:/go/src/app
+    ports:
+      - 8923:8923
+    working_dir: /go/src/app
+    command: go run webapp.go
+
+  prometheus:
+    image: prom/prometheus:latest 
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - monitor-net
+    depends_on:
+      - nodeexporter
+  
+  nodeexporter:
+    image: prom/node-exporter:v1.1.1
+    container_name: nodeexporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: unless-stopped
+    ports:
+      - 9100:9100
+    networks:
+      - monitor-net
+
+networks:
+  monitor-net:
+    driver: bridge
+
+
+
