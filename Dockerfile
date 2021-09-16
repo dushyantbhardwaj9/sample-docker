@@ -1,7 +1,7 @@
 FROM golang:alpine3.13
 
 WORKDIR /go/src/app
-COPY . .
+COPY ./webapp.go ./webapp.go
 
 RUN go build webapp.go
 
